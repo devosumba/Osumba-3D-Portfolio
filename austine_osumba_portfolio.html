@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Austine Osumba — 3D Artist & Animator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow:ital,wght@0,300;0,400;0,500;1,300&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+<style>
+/* ─── TOKENS ────────────────────────────────────── */
+:root{
+  --ink:#06060a;
+  --paper:#f2f0eb;
+  --lime:#b8ff00;
+  --red:#ff2a00;
+  --blue:#0066ff;
+  --dim:#1a1a22;
+  --mid:#3a3a48;
+  --ghost:rgba(242,240,235,0.06);
+  --border:rgba(242,240,235,0.1);
+  --fn-head:'Anton',sans-serif;
+  --fn-body:'Barlow',sans-serif;
+  --fn-mono:'Share Tech Mono',monospace;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--ink);
+  color:var(--paper);
+  font-family:var(--fn-body);
+  font-weight:300;
+  overflow-x:hidden;
+  cursor:none;
+}
+
+/* ─── CURSOR ────────────────────────────────────── */
+#dot{
+  position:fixed;width:8px;height:8px;background:var(--lime);
+  border-radius:50%;pointer-events:none;z-index:9999;
+  transform:translate(-50%,-50%);transition:transform .08s;
+}
+#ring{
+  position:fixed;width:32px;height:32px;border:1px solid rgba(184,255,0,.35);
+  border-radius:50%;pointer-events:none;z-index:9998;
+  transform:translate(-50%,-50%);transition:transform .14s ease-out;
+}
+body:hover #dot{opacity:1}
+
+/* ─── GRAIN ─────────────────────────────────────── */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)' opacity='.035'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:9997;mix-blend-mode:overlay;
+}
+
+/* ─── NAV ───────────────────────────────────────── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:1000;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:22px 56px;
+  transition:background .3s,border-color .3s;
+  border-bottom:1px solid transparent;
+}
+nav.stuck{background:rgba(6,6,10,.92);border-color:var(--border);backdrop-filter:blur(12px)}
+.nav-id{
+  font-family:var(--fn-head);font-size:17px;letter-spacing:3px;color:var(--lime);
+}
+.nav-list{display:flex;gap:36px;list-style:none}
+.nav-list a{
+  font-family:var(--fn-mono);font-size:11px;letter-spacing:2px;
+  text-transform:uppercase;color:rgba(242,240,235,.4);text-decoration:none;
+  transition:color .2s;
+}
+.nav-list a:hover{color:var(--paper)}
+
+/* ─── HERO ──────────────────────────────────────── */
+.hero{
+  min-height:100vh;display:grid;
+  grid-template-columns:1fr 1fr;
+  padding:160px 56px 80px;
+  position:relative;overflow:hidden;
+  border-bottom:1px solid var(--border);
+}
+.hero-canvas{position:absolute;inset:0;z-index:0;pointer-events:none}
+
+.hero-left{position:relative;z-index:1;display:flex;flex-direction:column;justify-content:flex-end}
+.hero-tag{
+  font-family:var(--fn-mono);font-size:10px;letter-spacing:3px;
+  text-transform:uppercase;color:var(--lime);
+  display:flex;align-items:center;gap:12px;margin-bottom:28px;
+}
+.hero-tag::before{content:'';display:block;width:36px;height:1px;background:var(--lime)}
+h1.name{
+  font-family:var(--fn-head);
+  font-size:clamp(64px,9vw,128px);
+  line-height:.9;letter-spacing:3px;
+  text-transform:uppercase;
+}
+h1.name .outline{
+  -webkit-text-stroke:1px rgba(242,240,235,.25);
+  color:transparent;display:block;
+}
+.hero-desc{
+  margin-top:36px;max-width:440px;
+  font-size:15px;line-height:1.9;color:rgba(242,240,235,.55);
+  font-style:italic;
+}
+
+.hero-right{
+  position:relative;z-index:1;
+  display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-end;
+  gap:32px;padding-bottom:8px;
+}
+.hero-stat .n{
+  font-family:var(--fn-head);font-size:72px;line-height:1;color:var(--lime);
+  letter-spacing:-2px;
+}
+.hero-stat .l{
+  font-family:var(--fn-mono);font-size:10px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--mid);text-align:right;margin-top:4px;
+}
+.hero-scroll{
+  position:absolute;bottom:40px;left:56px;z-index:1;
+  font-family:var(--fn-mono);font-size:10px;letter-spacing:3px;
+  text-transform:uppercase;color:var(--mid);
+  display:flex;align-items:center;gap:10px;
+}
+.scroll-bar{width:50px;height:1px;background:var(--mid);animation:sBar 2s ease-in-out infinite}
+@keyframes sBar{0%,100%{width:30px;opacity:.3}50%{width:70px;opacity:1}}
+
+/* ─── SECTION HEADER ────────────────────────────── */
+.sec-head{
+  padding:60px 56px 0;
+  display:flex;align-items:baseline;gap:20px;
+  border-top:1px solid var(--border);
+}
+.sec-num{font-family:var(--fn-mono);font-size:11px;letter-spacing:2px;color:var(--lime);text-transform:uppercase}
+.sec-title{font-family:var(--fn-head);font-size:13px;letter-spacing:4px;text-transform:uppercase;color:var(--mid)}
+.sec-line{flex:1;height:1px;background:var(--border);margin-left:12px;align-self:center}
+
+/* ─── PROJECTS LIST ─────────────────────────────── */
+#projects{padding:0 0 0}
+.proj-row{
+  border-bottom:1px solid var(--border);
+  transition:background .2s;
+}
+.proj-row:hover .proj-bar-head{background:rgba(184,255,0,.03)}
+
+.proj-bar-head{
+  display:grid;
+  grid-template-columns:80px 1fr auto 100px;
+  align-items:center;gap:24px;
+  padding:28px 56px;cursor:none;
+  transition:background .2s;
+  user-select:none;
+}
+.proj-bar-head:hover .proj-arrow{color:var(--lime)}
+
+.proj-idx{
+  font-family:var(--fn-mono);font-size:11px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--mid);
+}
+.proj-name-wrap .title{
+  font-family:var(--fn-head);font-size:clamp(28px,3.5vw,48px);
+  letter-spacing:1px;text-transform:uppercase;line-height:1;
+  transition:color .2s;
+}
+.proj-bar-head:hover .title{color:var(--lime)}
+.proj-name-wrap .sub{
+  font-family:var(--fn-mono);font-size:10px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--mid);margin-top:6px;
+}
+.proj-pills-inline{display:flex;gap:6px;flex-wrap:wrap}
+.chip{
+  font-family:var(--fn-mono);font-size:9px;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--mid);
+  border:1px solid var(--border);padding:3px 9px;
+}
+.proj-arrow{
+  font-family:var(--fn-mono);font-size:18px;color:var(--mid);
+  text-align:right;transition:color .2s, transform .3s;
+}
+.proj-row.open .proj-arrow{color:var(--lime);transform:rotate(45deg)}
+
+/* ─── ASSET PANEL ───────────────────────────────── */
+.asset-panel{
+  display:none;border-top:1px solid var(--border);
+  background:var(--dim);
+}
+.proj-row.open .asset-panel{display:block;animation:panelIn .4s cubic-bezier(.16,1,.3,1)}
+@keyframes panelIn{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
+
+.panel-inner{padding:40px 56px 48px}
+.panel-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.panel-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+.panel-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+
+.abox{
+  background:rgba(6,6,10,.6);border:1px solid var(--border);
+  padding:24px;
+}
+.abox-lbl{
+  font-family:var(--fn-mono);font-size:9px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--mid);
+  margin-bottom:16px;display:flex;align-items:center;gap:10px;
+}
+.abox-lbl::after{content:'';flex:1;height:1px;background:var(--border)}
+.abox-note{
+  font-family:var(--fn-mono);font-size:10px;color:var(--mid);
+  line-height:1.7;margin-top:14px;padding-top:14px;
+  border-top:1px solid var(--border);
+}
+.abox-note b{color:var(--lime);font-weight:400}
+.spec-table{width:100%;border-collapse:collapse;margin-top:12px}
+.spec-table td{
+  padding:7px 0;font-family:var(--fn-mono);font-size:10px;
+  border-bottom:1px solid var(--border);vertical-align:top;
+}
+.spec-table td:first-child{color:var(--mid);width:42%;padding-right:12px}
+.spec-table td:last-child{color:var(--paper)}
+.abox svg{display:block;width:100%}
+.full-w{grid-column:1/-1}
+
+/* ─── SWATCH ────────────────────────────────────── */
+.swatches{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+.sw{display:flex;flex-direction:column;align-items:center;gap:6px}
+.sw-box{width:48px;height:48px;border-radius:3px}
+.sw-lbl{font-family:var(--fn-mono);font-size:8px;color:var(--mid);text-align:center}
+
+/* ─── P5 CANVAS ─────────────────────────────────── */
+.p5-toolbar{
+  display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+  padding:14px 20px;background:rgba(6,6,10,.8);
+  border-bottom:1px solid var(--border);
+}
+.p5-btn{
+  background:transparent;border:1px solid var(--border);color:var(--mid);
+  padding:5px 14px;font-family:var(--fn-mono);font-size:10px;
+  letter-spacing:2px;text-transform:uppercase;cursor:none;transition:all .2s;
+}
+.p5-btn.on,.p5-btn:hover{border-color:var(--lime);color:var(--lime);background:rgba(184,255,0,.05)}
+.p5-hint{margin-left:auto;font-family:var(--fn-mono);font-size:10px;color:var(--mid)}
+#pCanvas{display:block;width:100%;height:460px;cursor:none}
+
+/* ─── P6 LOGO ───────────────────────────────────── */
+.logo-toolbar{
+  display:flex;gap:8px;align-items:center;padding:14px 20px;
+  background:rgba(6,6,10,.8);border-bottom:1px solid var(--border);
+}
+.lv-btn{
+  background:transparent;border:1px solid var(--border);color:var(--mid);
+  padding:5px 14px;font-family:var(--fn-mono);font-size:10px;
+  letter-spacing:2px;text-transform:uppercase;cursor:none;transition:all .2s;
+}
+.lv-btn.on,.lv-btn:hover{border-color:var(--lime);color:var(--lime)}
+.replay-btn{
+  margin-left:auto;background:transparent;border:1px solid var(--border);color:var(--mid);
+  padding:5px 14px;font-family:var(--fn-mono);font-size:10px;
+  letter-spacing:2px;cursor:none;transition:all .2s;
+}
+.replay-btn:hover{border-color:var(--red);color:var(--red)}
+.logo-stage{
+  height:400px;position:relative;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  background:#040408;
+  transition:background .5s;
+}
+.logo-stage.lt{background:#efefea}
+.logo-stage.cl{background:linear-gradient(135deg,#070018 0%,#160040 50%,#000c18 100%)}
+
+.lg-grid-bg{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(184,255,0,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(184,255,0,.035) 1px,transparent 1px);
+  background-size:48px 48px;
+  animation:gScroll 18s linear infinite;
+}
+.logo-stage.lt .lg-grid-bg{
+  background-image:
+    linear-gradient(rgba(0,0,0,.05) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,0,0,.05) 1px,transparent 1px);
+}
+@keyframes gScroll{0%{background-position:0 0}100%{background-position:48px 48px}}
+
+.lg-r{
+  position:absolute;border-radius:50%;
+  border:1px solid rgba(184,255,0,.06);
+  animation:rPulse 4s ease-out infinite;
+}
+.logo-stage.lt .lg-r{border-color:rgba(0,0,0,.04)}
+.lg-r:nth-child(2){width:90px;height:90px;animation-delay:0s}
+.lg-r:nth-child(3){width:190px;height:190px;animation-delay:.6s}
+.lg-r:nth-child(4){width:310px;height:310px;animation-delay:1.2s}
+.lg-r:nth-child(5){width:440px;height:440px;animation-delay:1.8s}
+@keyframes rPulse{0%{opacity:.7;transform:scale(.86)}100%{opacity:0;transform:scale(1.18)}}
+
+.lg-corners span{
+  position:absolute;width:16px;height:16px;
+  border-color:rgba(184,255,0,.2);border-style:solid;
+}
+.logo-stage.lt .lg-corners span{border-color:rgba(0,0,0,.12)}
+.lg-corners span:nth-child(1){top:20px;left:20px;border-width:1px 0 0 1px}
+.lg-corners span:nth-child(2){top:20px;right:20px;border-width:1px 1px 0 0}
+.lg-corners span:nth-child(3){bottom:20px;left:20px;border-width:0 0 1px 1px}
+.lg-corners span:nth-child(4){bottom:20px;right:20px;border-width:0 1px 1px 0}
+
+.lg-dust{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.lg-d{
+  position:absolute;width:2px;height:2px;border-radius:50%;
+  background:var(--lime);opacity:0;
+  animation:dDrift linear infinite;
+}
+.logo-stage.cl .lg-d{background:#8860ff}
+@keyframes dDrift{
+  0%{opacity:0;transform:translateY(0) translateX(0)}
+  10%{opacity:.7}90%{opacity:.3}
+  100%{opacity:0;transform:translateY(-200px) translateX(var(--dx))}
+}
+
+.lg-core{
+  position:relative;z-index:10;text-align:center;
+  opacity:0;transform:translateY(24px);
+  animation:cIn 1.1s cubic-bezier(.16,1,.3,1) .2s forwards;
+}
+@keyframes cIn{to{opacity:1;transform:none}}
+
+.lg-icon{width:60px;height:60px;margin:0 auto 14px}
+.lg-icon svg{width:100%;height:100%}
+.lg-wordmark{
+  font-family:var(--fn-head);font-size:52px;letter-spacing:5px;
+  color:var(--paper);line-height:1;
+}
+.logo-stage.lt .lg-wordmark{color:#06060a}
+.lg-wordmark em{color:var(--lime);font-style:normal}
+.logo-stage.lt .lg-wordmark em{color:var(--red)}
+.logo-stage.cl .lg-wordmark em{color:#9966ff}
+.lg-accent-line{
+  width:0;height:2px;background:var(--lime);
+  margin:12px auto;
+  animation:lineGrow .8s cubic-bezier(.16,1,.3,1) .9s forwards;
+}
+.logo-stage.lt .lg-accent-line{background:var(--red)}
+.logo-stage.cl .lg-accent-line{background:linear-gradient(90deg,var(--lime),#9966ff)}
+@keyframes lineGrow{to{width:150px}}
+.lg-subtitle{
+  font-family:var(--fn-mono);font-size:11px;letter-spacing:4px;
+  text-transform:uppercase;color:var(--mid);
+  opacity:0;animation:fadeIn .5s ease 1.5s forwards;
+}
+.logo-stage.lt .lg-subtitle{color:#888}
+@keyframes fadeIn{to{opacity:1}}
+
+/* ─── SKILLS ────────────────────────────────────── */
+.skills-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:2px;
+  padding:0 56px 80px;
+}
+.sk-col{background:var(--dim);padding:32px}
+.sk-col h4{
+  font-family:var(--fn-head);font-size:18px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--lime);margin-bottom:24px;
+}
+.sk-col:nth-child(2) h4{color:var(--red)}
+.sk-col:nth-child(3) h4{color:var(--blue)}
+.sk-item{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:9px 0;border-bottom:1px solid var(--border);
+  font-size:13px;color:rgba(242,240,235,.6);
+}
+.sk-item:last-child{border-bottom:none}
+.sk-track{width:72px;height:2px;background:var(--border)}
+.sk-fill{height:100%;background:var(--lime)}
+.sk-col:nth-child(2) .sk-fill{background:var(--red)}
+.sk-col:nth-child(3) .sk-fill{background:var(--blue)}
+
+/* ─── ROADMAP ───────────────────────────────────── */
+.roadmap-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:2px;
+  padding:0 56px 80px;
+}
+.rm-phase{background:var(--dim);padding:28px}
+.rm-big{
+  font-family:var(--fn-head);font-size:80px;line-height:1;
+  color:rgba(184,255,0,.06);margin-bottom:4px;
+}
+.rm-phase h4{
+  font-family:var(--fn-head);font-size:16px;letter-spacing:2px;
+  text-transform:uppercase;margin-bottom:4px;
+}
+.rm-phase .weeks{
+  font-family:var(--fn-mono);font-size:10px;letter-spacing:2px;
+  color:var(--lime);text-transform:uppercase;margin-bottom:18px;
+}
+.rm-phase ul{list-style:none}
+.rm-phase li{
+  font-family:var(--fn-mono);font-size:10px;color:var(--mid);
+  padding:4px 0 4px 14px;position:relative;line-height:1.5;
+}
+.rm-phase li::before{content:'—';position:absolute;left:0;color:var(--border)}
+
+/* ─── ABOUT / CONTACT ───────────────────────────── */
+.bottom-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:2px;
+  padding:0 56px 80px;
+}
+.b-box{background:var(--dim);padding:40px}
+.b-box h2{
+  font-family:var(--fn-head);font-size:52px;line-height:.95;
+  letter-spacing:2px;text-transform:uppercase;margin-bottom:24px;
+}
+.b-box h2 em{color:var(--lime);font-style:normal}
+.b-box p{font-size:14px;line-height:1.85;color:rgba(242,240,235,.55);margin-bottom:14px}
+.c-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:12px 0;border-bottom:1px solid var(--border);
+}
+.c-row:last-child{border-bottom:none}
+.c-label{font-family:var(--fn-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--mid)}
+.c-val{font-size:14px;color:var(--paper)}
+.c-val.open{color:var(--lime)}
+
+/* ─── FOOTER ────────────────────────────────────── */
+footer{
+  border-top:1px solid var(--border);
+  padding:28px 56px;
+  display:flex;justify-content:space-between;align-items:center;
+}
+footer p{font-family:var(--fn-mono);font-size:10px;color:var(--mid);letter-spacing:1px}
+.f-logo{font-family:var(--fn-head);font-size:16px;letter-spacing:4px;color:var(--lime)}
+
+/* ─── POSE GRID ─────────────────────────────────── */
+.pose-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:12px}
+.pose-card{text-align:center}
+.pose-card p{font-family:var(--fn-mono);font-size:9px;color:var(--mid);margin-top:6px;letter-spacing:1px}
+
+/* ─── RESPONSIVE ────────────────────────────────── */
+@media(max-width:900px){
+  .hero{grid-template-columns:1fr;padding:110px 24px 60px}
+  .hero-right{flex-direction:row;align-items:flex-end;justify-content:flex-start;margin-top:40px}
+  nav{padding:18px 24px}
+  .proj-bar-head{padding:20px 24px;grid-template-columns:56px 1fr 80px}
+  .proj-pills-inline{display:none}
+  .panel-inner{padding:28px 24px 36px}
+  .panel-grid-2,.panel-grid-3{grid-template-columns:1fr}
+  .skills-grid,.roadmap-grid,.bottom-grid{grid-template-columns:1fr;padding:0 24px 60px}
+  .sec-head{padding:40px 24px 0}
+  .hero-scroll{left:24px}
+  footer{padding:20px 24px;flex-direction:column;gap:10px;text-align:center}
+}
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div id="dot"></div>
+<div id="ring"></div>
+
+<!-- NAV -->
+<nav id="nav">
+  <div class="nav-id">A.OSUMBA</div>
+  <ul class="nav-list">
+    <li><a href="#projects">Work</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#about">About</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<div class="hero" id="top">
+  <canvas class="hero-canvas" id="hBg"></canvas>
+  <div class="hero-left">
+    <div class="hero-tag">3D Artist · Animator · Blender Specialist</div>
+    <h1 class="name">
+      <span>AUSTINE</span>
+      <span class="outline">OSUMBA</span>
+    </h1>
+    <p class="hero-desc">
+      Crafting immersive 3D worlds through light, form & motion.
+      Building a complete portfolio spanning environments, characters,
+      product visualisation, simulation art and motion graphics — all in Blender 4.x.
+    </p>
+  </div>
+  <div class="hero-right">
+    <div class="hero-stat"><div class="n">06</div><div class="l">Projects</div></div>
+    <div class="hero-stat"><div class="n">4.x</div><div class="l">Blender</div></div>
+    <div class="hero-stat"><div class="n">14<span style="font-size:.5em">wk</span></div><div class="l">Roadmap</div></div>
+  </div>
+  <div class="hero-scroll"><div class="scroll-bar"></div>Scroll</div>
+</div>
+
+<!-- ═══════════════════════════════════════════ PROJECTS -->
+<div class="sec-head" id="projects">
+  <span class="sec-num">01</span>
+  <span class="sec-title">Portfolio Projects</span>
+  <div class="sec-line"></div>
+</div>
+
+<div id="projList">
+
+  <!-- ── ROW 1 ── -->
+  <div class="proj-row" id="r1">
+    <div class="proj-bar-head" onclick="toggleRow('r1')">
+      <span class="proj-idx">001</span>
+      <div class="proj-name-wrap">
+        <div class="title">The Architect's Desk</div>
+        <div class="sub">Hard Surface Modeling · PBR Materials · Cycles</div>
+      </div>
+      <div class="proj-pills-inline">
+        <span class="chip">Modeling</span><span class="chip">Lighting</span><span class="chip">Materials</span>
+      </div>
+      <div class="proj-arrow">+</div>
+    </div>
+    <div class="asset-panel">
+      <div class="panel-inner">
+        <div class="panel-grid-2">
+
+          <!-- Scene Layout -->
+          <div class="abox">
+            <div class="abox-lbl">Scene Layout — Top View</div>
+            <svg viewBox="0 0 500 310" fill="none">
+              <defs>
+                <radialGradient id="lampglow" cx="380" cy="100" r="100" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="rgba(255,210,80,.22)"/>
+                  <stop offset="100%" stop-color="transparent"/>
+                </radialGradient>
+              </defs>
+              <!-- desk surface -->
+              <rect x="30" y="55" width="440" height="210" rx="4" fill="#1c1508" stroke="#3a2a14"/>
+              <!-- lamp glow -->
+              <ellipse cx="380" cy="170" rx="90" ry="55" fill="url(#lampglow)"/>
+              <!-- lamp post -->
+              <line x1="380" y1="265" x2="380" y2="130" stroke="#888" stroke-width="4"/>
+              <ellipse cx="380" cy="122" rx="34" ry="9" fill="#555"/>
+              <ellipse cx="380" cy="122" rx="34" ry="9" fill="none" stroke="rgba(255,210,60,.6)" stroke-width="10"/>
+              <!-- monitor -->
+              <rect x="155" y="30" width="150" height="98" rx="4" fill="#0d0d1a" stroke="#444" stroke-width="2"/>
+              <rect x="165" y="40" width="130" height="78" rx="2" fill="#060610"/>
+              <!-- screen glow subtle -->
+              <rect x="165" y="40" width="130" height="78" rx="2" fill="rgba(0,80,220,.08)"/>
+              <rect x="215" y="128" width="50" height="18" rx="3" fill="#282830"/>
+              <!-- notebook -->
+              <rect x="150" y="115" width="120" height="90" rx="2" fill="#f0ebd8" stroke="#c8b890"/>
+              <line x1="166" y1="134" x2="256" y2="134" stroke="#d0c0a0" stroke-width=".8"/>
+              <line x1="166" y1="145" x2="256" y2="145" stroke="#d0c0a0" stroke-width=".8"/>
+              <line x1="166" y1="156" x2="236" y2="156" stroke="#d0c0a0" stroke-width=".8"/>
+              <line x1="166" y1="167" x2="246" y2="167" stroke="#d0c0a0" stroke-width=".8"/>
+              <!-- coffee mug -->
+              <ellipse cx="90" cy="185" rx="24" ry="24" fill="#2a1a08" stroke="#8B4513" stroke-width="2"/>
+              <ellipse cx="90" cy="185" rx="17" ry="17" fill="#3d1a00"/>
+              <path d="M114 185 Q124 185 124 178 Q124 171 114 171" stroke="#8B4513" fill="none" stroke-width="2"/>
+              <!-- pencils -->
+              <rect x="300" y="128" width="7" height="78" rx="1" fill="#f0c040" transform="rotate(-13,303,167)"/>
+              <rect x="314" y="126" width="7" height="78" rx="1" fill="#e07840" transform="rotate(-5,317,165)"/>
+              <rect x="328" y="127" width="7" height="78" rx="1" fill="#60a8ff" transform="rotate(1,331,166)"/>
+              <!-- keyboard -->
+              <rect x="38" y="200" width="138" height="52" rx="3" fill="#181820" stroke="#2a2a38"/>
+              <rect x="46" y="208" width="122" height="36" rx="2" fill="#121218"/>
+              <!-- keys rows -->
+              <rect x="50" y="213" width="110" height="7" rx="1" fill="#1e1e28" opacity=".8"/>
+              <rect x="50" y="224" width="110" height="7" rx="1" fill="#1e1e28" opacity=".8"/>
+              <rect x="50" y="235" width="80" height="7" rx="1" fill="#1e1e28" opacity=".8"/>
+              <!-- camera marker -->
+              <circle cx="230" cy="290" r="7" fill="none" stroke="#b8ff00" stroke-width="1.5"/>
+              <line x1="230" y1="283" x2="230" y2="268" stroke="#b8ff00" stroke-dasharray="3" stroke-width="1"/>
+              <text x="222" y="305" fill="#555" font-size="9" font-family="monospace">CAMERA</text>
+              <!-- LABELS -->
+              <text x="80" y="218" fill="#555" font-size="9" font-family="monospace">MUG</text>
+              <text x="152" y="113" fill="#555" font-size="9" font-family="monospace">NOTEBOOK</text>
+              <text x="296" y="122" fill="#555" font-size="9" font-family="monospace">PENCILS</text>
+              <text x="370" y="94" fill="#b8ff00" font-size="9" font-family="monospace">LAMP ★</text>
+              <text x="40" y="196" fill="#555" font-size="9" font-family="monospace">KEYBOARD</text>
+              <text x="156" y="25" fill="#555" font-size="9" font-family="monospace">MONITOR</text>
+            </svg>
+            <div class="abox-note"><b>Modeling tip:</b> Each prop is a separate object. Use Subdivision Surface on the mug and lamp shade. Keep background items low-poly for render efficiency.</div>
+          </div>
+
+          <!-- Lighting Diagram -->
+          <div class="abox">
+            <div class="abox-lbl">3-Point Lighting Setup</div>
+            <svg viewBox="0 0 500 310" fill="none">
+              <!-- scene rect dashed -->
+              <rect x="160" y="90" width="180" height="120" rx="2" fill="none" stroke="#1e1e30" stroke-dasharray="4"/>
+              <rect x="172" y="108" width="156" height="86" rx="2" fill="#1a1a28" stroke="#2a2a40"/>
+              <text x="212" y="153" fill="#3a3a58" font-size="10" font-family="monospace">DESK</text>
+
+              <!-- KEY LIGHT -->
+              <rect x="54" y="34" width="60" height="32" rx="2" fill="rgba(255,220,60,.08)" stroke="#ffe040"/>
+              <text x="40" y="26" fill="#ffe040" font-size="9" font-family="monospace">KEY LIGHT</text>
+              <text x="40" y="76" fill="#888" font-size="9" font-family="monospace">Area · 800W · Warm</text>
+              <line x1="114" y1="50" x2="172" y2="128" stroke="#ffe040" stroke-dasharray="5" stroke-width="1.2"/>
+              <!-- glow -->
+              <circle cx="84" cy="50" r="24" fill="rgba(255,220,60,.06)"/>
+
+              <!-- FILL LIGHT -->
+              <rect x="392" y="60" width="56" height="28" rx="2" fill="rgba(120,180,255,.08)" stroke="#78b4ff"/>
+              <text x="388" y="52" fill="#78b4ff" font-size="9" font-family="monospace">FILL LIGHT</text>
+              <text x="384" y="104" fill="#888" font-size="9" font-family="monospace">Area · 200W · Cool</text>
+              <line x1="392" y1="74" x2="318" y2="148" stroke="#78b4ff" stroke-dasharray="5" stroke-width="1.2"/>
+
+              <!-- RIM LIGHT -->
+              <rect x="218" y="18" width="64" height="28" rx="2" fill="rgba(255,140,60,.08)" stroke="#ff8c3c"/>
+              <text x="290" y="26" fill="#ff8c3c" font-size="9" font-family="monospace">RIM LIGHT</text>
+              <text x="290" y="38" fill="#888" font-size="9" font-family="monospace">Spot · 400W</text>
+              <line x1="250" y1="46" x2="250" y2="108" stroke="#ff8c3c" stroke-dasharray="5" stroke-width="1.2"/>
+
+              <!-- HDRI note -->
+              <ellipse cx="250" cy="250" rx="240" ry="40" fill="none" stroke="#1a1a30" stroke-dasharray="2"/>
+              <text x="130" y="290" fill="#2a2a48" font-size="9" font-family="monospace">HDRI World Illumination — Strength 0.3</text>
+            </svg>
+            <table class="spec-table">
+              <tr><td>Key Light</td><td>Area, Warm White, 800W, upper-left 45°</td></tr>
+              <tr><td>Fill Light</td><td>Area, Cool Blue, 200W, right 0°</td></tr>
+              <tr><td>Rim Light</td><td>Spot, Orange tint, 400W, upper-right</td></tr>
+              <tr><td>HDRI</td><td>Studio interior, strength 0.3</td></tr>
+              <tr><td>Render</td><td>Cycles, 256 samples, Intel Denoiser</td></tr>
+            </table>
+          </div>
+
+          <!-- Materials -->
+          <div class="abox">
+            <div class="abox-lbl">PBR Material Palette</div>
+            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px">
+              <div><div style="height:52px;background:linear-gradient(135deg,#5c3317,#8b5e3c);border-radius:3px;margin-bottom:6px"></div><p style="font-family:var(--fn-mono);font-size:9px;color:var(--mid)">Oak Wood<br>R:0.7</p></div>
+              <div><div style="height:52px;background:linear-gradient(180deg,#ddd,#888,#ccc);border-radius:3px;margin-bottom:6px"></div><p style="font-family:var(--fn-mono);font-size:9px;color:var(--mid)">Brushed Al.<br>M:1 R:0.1</p></div>
+              <div><div style="height:52px;background:#f0ebe0;border-radius:3px;margin-bottom:6px;border:1px solid #c8b890"></div><p style="font-family:var(--fn-mono);font-size:9px;color:var(--mid)">Paper<br>R:0.9 SSS</p></div>
+              <div><div style="height:52px;background:#3d1a00;border-radius:3px;margin-bottom:6px"></div><p style="font-family:var(--fn-mono);font-size:9px;color:var(--mid)">Coffee<br>R:0.6</p></div>
+              <div><div style="height:52px;background:linear-gradient(135deg,#181820,#2a2a3a);border-radius:3px;margin-bottom:6px;border:1px solid #333"></div><p style="font-family:var(--fn-mono);font-size:9px;color:var(--mid)">Plastic<br>M:0 R:0.5</p></div>
+            </div>
+            <div class="abox-note"><b>Node tip:</b> Mix Diffuse + Translucent BSDF for paper (fake SSS). Use procedural noise for wood grain instead of a texture image.</div>
+          </div>
+
+          <!-- Deliverables -->
+          <div class="abox">
+            <div class="abox-lbl">Deliverables Checklist</div>
+            <div style="display:flex;flex-direction:column;gap:2px">
+              ${['Hero render — 45° angle (MAIN)','Top-down flat-lay render','Low-angle dramatic shot','Wireframe beauty render','Shader node breakdown screenshot','3-point lighting comparison strip'].map(t=>`
+              <div style="display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)">
+                <div style="width:16px;height:16px;border:1px solid var(--lime);flex-shrink:0;border-radius:2px"></div>
+                <span style="font-family:var(--fn-mono);font-size:10px;color:var(--mid)">${t}</span>
+              </div>`).join('')}
+            </div>
+            <div class="abox-note"><b>ArtStation tip:</b> Upload WIP process images alongside finals. Studies and breakdowns get significantly more engagement than finished renders alone.</div>
+          </div>
+
+        </div><!-- end grid -->
+      </div>
+    </div>
+  </div><!-- /r1 -->
+
+  <!-- ── ROW 2 ── -->
+  <div class="proj-row" id="r2">
+    <div class="proj-bar-head" onclick="toggleRow('r2')">
+      <span class="proj-idx">002</span>
+      <div class="proj-name-wrap">
+        <div class="title">Neon Tokyo Alleyway</div>
+        <div class="sub">Environment Design · Volumetric Lighting · Geo Nodes</div>
+      </div>
+      <div class="proj-pills-inline">
+        <span class="chip">Environment</span><span class="chip">Neon</span><span class="chip">Fog Volume</span>
+      </div>
+      <div class="proj-arrow">+</div>
+    </div>
+    <div class="asset-panel">
+      <div class="panel-inner">
+        <div class="panel-grid-2">
+
+          <div class="abox full-w">
+            <div class="abox-lbl">Environment Layout — Cross Section</div>
+            <svg viewBox="0 0 800 360" fill="none" style="width:100%;display:block">
+              <defs>
+                <linearGradient id="alSky" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#010108"/>
+                  <stop offset="100%" stop-color="#050520"/>
+                </linearGradient>
+                <radialGradient id="alFog" cx="50%" cy="100%" r="70%">
+                  <stop offset="0%" stop-color="rgba(70,40,180,.38)"/>
+                  <stop offset="100%" stop-color="transparent"/>
+                </radialGradient>
+                <radialGradient id="alPink" cx="100" cy="185" r="120" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="rgba(255,42,80,.15)"/>
+                  <stop offset="100%" stop-color="transparent"/>
+                </radialGradient>
+                <radialGradient id="alCyan" cx="700" cy="180" r="120" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="rgba(0,180,255,.12)"/>
+                  <stop offset="100%" stop-color="transparent"/>
+                </radialGradient>
+              </defs>
+              <rect width="800" height="360" fill="url(#alSky)"/>
+              <rect width="800" height="360" fill="url(#alPink)" opacity=".8"/>
+              <rect width="800" height="360" fill="url(#alCyan)" opacity=".8"/>
+
+              <!-- LEFT BUILDING -->
+              <rect x="0" y="0" width="210" height="300" fill="#0b0b17" stroke="#181828"/>
+              <rect x="12" y="16" width="22" height="15" rx="1" fill="rgba(255,50,128,.72)"/>
+              <rect x="44" y="16" width="22" height="15" rx="1" fill="rgba(32,200,255,.55)"/>
+              <rect x="76" y="16" width="22" height="15" rx="1" fill="rgba(232,255,60,.52)"/>
+              <rect x="108" y="16" width="22" height="15" rx="1" fill="rgba(255,130,30,.45)"/>
+              <rect x="140" y="16" width="22" height="15" rx="1" fill="rgba(80,60,255,.52)"/>
+              <rect x="12" y="44" width="22" height="14" rx="1" fill="rgba(30,200,255,.45)"/>
+              <rect x="76" y="44" width="22" height="14" rx="1" fill="rgba(255,50,128,.38)"/>
+              <rect x="140" y="44" width="22" height="14" rx="1" fill="rgba(232,255,60,.45)"/>
+              <rect x="12" y="72" width="22" height="14" rx="1" fill="rgba(80,60,255,.5)"/>
+              <rect x="108" y="72" width="22" height="14" rx="1" fill="rgba(255,130,30,.42)"/>
+              <!-- neon sign LEFT -->
+              <rect x="8" y="148" width="194" height="34" rx="2" fill="rgba(255,42,80,.07)" stroke="#ff2a50" stroke-width="1.5"/>
+              <text x="18" y="170" fill="#ff2a50" font-size="16" opacity=".92">ラーメン 横丁</text>
+              <rect x="8" y="148" width="194" height="34" rx="2" fill="none" stroke="#ff2a50" stroke-width="7" opacity=".07"/>
+
+              <!-- RIGHT BUILDING -->
+              <rect x="590" y="0" width="210" height="300" fill="#090914" stroke="#181828"/>
+              <rect x="600" y="20" width="20" height="13" rx="1" fill="rgba(232,255,60,.65)"/>
+              <rect x="632" y="20" width="20" height="13" rx="1" fill="rgba(30,200,255,.5)"/>
+              <rect x="664" y="20" width="20" height="13" rx="1" fill="rgba(255,50,128,.55)"/>
+              <rect x="696" y="20" width="20" height="13" rx="1" fill="rgba(80,60,255,.5)"/>
+              <rect x="600" y="48" width="20" height="13" rx="1" fill="rgba(255,130,30,.45)"/>
+              <rect x="664" y="48" width="20" height="13" rx="1" fill="rgba(232,255,60,.4)"/>
+              <!-- neon sign RIGHT -->
+              <rect x="592" y="130" width="200" height="52" rx="2" fill="rgba(0,180,255,.06)" stroke="#00b4ff" stroke-width="1.5"/>
+              <text x="612" y="152" fill="#00b4ff" font-size="14">CYBER BAR</text>
+              <text x="612" y="170" fill="#00b4ff" font-size="14">&amp; LOUNGE</text>
+
+              <!-- OVERHEAD CABLES -->
+              <path d="M0 64 Q200 82 400 64 Q600 46 800 72" stroke="#2a2a3c" stroke-width="2" fill="none"/>
+              <path d="M0 92 Q200 108 400 92 Q600 76 800 100" stroke="#1e1e2e" stroke-width="1.5" fill="none"/>
+              <path d="M0 116 Q200 128 400 118 Q600 108 800 124" stroke="#181828" stroke-width="1" fill="none"/>
+
+              <!-- LANTERNS -->
+              <ellipse cx="278" cy="108" rx="11" ry="16" fill="rgba(255,130,30,.2)" stroke="#ff821e"/>
+              <ellipse cx="358" cy="88" rx="11" ry="16" fill="rgba(255,42,80,.2)" stroke="#ff2a50"/>
+              <ellipse cx="440" cy="110" rx="11" ry="16" fill="rgba(30,200,255,.2)" stroke="#1ec8ff"/>
+              <ellipse cx="524" cy="90" rx="11" ry="16" fill="rgba(232,255,60,.16)" stroke="#c8ff00"/>
+
+              <!-- FOG VOLUME -->
+              <rect x="210" y="210" width="380" height="90" fill="url(#alFog)" opacity=".7"/>
+
+              <!-- GROUND / PUDDLES -->
+              <rect x="0" y="300" width="800" height="60" fill="#04040e"/>
+              <rect x="50" y="298" width="90" height="11" rx="2" fill="rgba(255,42,80,.22)"/>
+              <rect x="240" y="296" width="140" height="13" rx="2" fill="rgba(30,200,255,.16)"/>
+              <rect x="460" y="297" width="110" height="12" rx="2" fill="rgba(232,255,60,.18)"/>
+              <rect x="650" y="298" width="80" height="11" rx="2" fill="rgba(80,60,255,.2)"/>
+
+              <!-- PERSPECTIVE LINES -->
+              <line x1="210" y1="0" x2="400" y2="300" stroke="#151528" stroke-dasharray="3" opacity=".6"/>
+              <line x1="590" y1="0" x2="400" y2="300" stroke="#151528" stroke-dasharray="3" opacity=".6"/>
+
+              <!-- LABELS -->
+              <text x="212" y="18" fill="#2a2a48" font-size="10" font-family="monospace">← ALLEY WIDTH ~4m →</text>
+              <text x="200" y="346" fill="#b8ff00" font-size="10" font-family="monospace">WET COBBLESTONE — Roughness 0.04 · Normal bump · Puddles: Mix Diffuse+Glossy</text>
+            </svg>
+          </div>
+
+          <div class="abox">
+            <div class="abox-lbl">Neon Emission Palette</div>
+            <div class="swatches">
+              <div class="sw"><div class="sw-box" style="background:#ff2a50;box-shadow:0 0 18px rgba(255,42,80,.7)"></div><div class="sw-lbl">#FF2A50<br>Hot Pink</div></div>
+              <div class="sw"><div class="sw-box" style="background:#1ec8ff;box-shadow:0 0 18px rgba(30,200,255,.7)"></div><div class="sw-lbl">#1EC8FF<br>Cyan</div></div>
+              <div class="sw"><div class="sw-box" style="background:#b8ff00;box-shadow:0 0 18px rgba(184,255,0,.7)"></div><div class="sw-lbl">#B8FF00<br>Neon Lime</div></div>
+              <div class="sw"><div class="sw-box" style="background:#ff821e;box-shadow:0 0 18px rgba(255,130,30,.6)"></div><div class="sw-lbl">#FF821E<br>Orange</div></div>
+              <div class="sw"><div class="sw-box" style="background:#503cff;box-shadow:0 0 18px rgba(80,60,255,.6)"></div><div class="sw-lbl">#503CFF<br>Violet</div></div>
+            </div>
+            <table class="spec-table">
+              <tr><td>Neon signs</td><td>Emission shader, Strength 8–15</td></tr>
+              <tr><td>Ground</td><td>Glossy BSDF, Roughness 0.04</td></tr>
+              <tr><td>Puddles</td><td>Mix Shader: Diffuse + Glossy</td></tr>
+              <tr><td>Fog</td><td>Volume Scatter, Density 0.08</td></tr>
+              <tr><td>Rain VFX</td><td>Particle system, Mesh line, Speed 12</td></tr>
+            </table>
+          </div>
+
+          <div class="abox">
+            <div class="abox-lbl">Geometry Nodes — Scatter Debris</div>
+            <div style="background:#04040a;border:1px solid var(--border);padding:16px;font-family:var(--fn-mono);font-size:11px;line-height:2.1">
+              <span style="color:#503cff">Input Mesh</span> → <span style="color:#b8ff00">Distribute Points on Faces</span><br>
+              &nbsp;&nbsp;↓ <span style="color:#ff821e">Density:</span> Noise Texture (Scale 6)<br>
+              &nbsp;&nbsp;↓ <span style="color:#b8ff00">Instance on Points</span><br>
+              &nbsp;&nbsp;↓ Objects: [can, crate, puddle_plane, paper]<br>
+              &nbsp;&nbsp;↓ <span style="color:#ff821e">Rotation:</span> Random Value (Euler Z)<br>
+              &nbsp;&nbsp;↓ <span style="color:#ff821e">Scale:</span> Random Float 0.8–1.3<br>
+              → <span style="color:#503cff">Realize Instances</span> → <span style="color:#b8ff00">Output</span>
+            </div>
+            <div class="abox-note"><b>Tip:</b> Paint a vertex colour map on the ground — denser near walls, sparse in the alley centre — to drive Distribute Points density naturally.</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div><!-- /r2 -->
+
+  <!-- ── ROW 3 ── -->
+  <div class="proj-row" id="r3">
+    <div class="proj-bar-head" onclick="toggleRow('r3')">
+      <span class="proj-idx">003</span>
+      <div class="proj-name-wrap">
+        <div class="title">Stylized Robot Companion</div>
+        <div class="sub">Character Modeling · Rigging · Weight Paint · Animation</div>
+      </div>
+      <div class="proj-pills-inline">
+        <span class="chip">Character</span><span class="chip">Rigging</span><span class="chip">Animation</span>
+      </div>
+      <div class="proj-arrow">+</div>
+    </div>
+    <div class="asset-panel">
+      <div class="panel-inner">
+        <div class="panel-grid-3">
+
+          <!-- Front view -->
+          <div class="abox">
+            <div class="abox-lbl">Front Orthographic</div>
+            <svg viewBox="0 0 200 340" fill="none" style="display:block;width:100%">
+              <!-- HEAD -->
+              <rect x="58" y="8" width="84" height="66" rx="11" fill="#222234" stroke="#503cff" stroke-width="1.5"/>
+              <ellipse cx="84" cy="40" rx="13" ry="13" fill="#0d0d1a"/>
+              <ellipse cx="116" cy="40" rx="13" ry="13" fill="#0d0d1a"/>
+              <ellipse cx="84" cy="40" rx="9" ry="9" fill="#1ec8ff" opacity=".88"/>
+              <ellipse cx="116" cy="40" rx="9" ry="9" fill="#1ec8ff" opacity=".88"/>
+              <circle cx="84" cy="40" r="4" fill="white" opacity=".9"/>
+              <circle cx="116" cy="40" r="4" fill="white" opacity=".9"/>
+              <line x1="100" y1="8" x2="100" y2="-4" stroke="#503cff" stroke-width="2"/>
+              <circle cx="100" cy="-6" r="5" fill="#b8ff00"/>
+              <path d="M76 66 Q100 73 124 66" stroke="#503cff" stroke-width="1.3" fill="none"/>
+              <!-- NECK -->
+              <rect x="88" y="74" width="24" height="14" rx="3" fill="#1c1c2c" stroke="#333"/>
+              <!-- TORSO -->
+              <rect x="42" y="88" width="116" height="84" rx="7" fill="#181828" stroke="#503cff" stroke-width="1.5"/>
+              <rect x="58" y="100" width="84" height="60" rx="3" fill="#101018" stroke="#222232"/>
+              <circle cx="74" cy="116" r="5" fill="#b8ff00" opacity=".9"/>
+              <circle cx="100" cy="116" r="5" fill="#1ec8ff" opacity=".9"/>
+              <circle cx="126" cy="116" r="5" fill="#ff2a00" opacity=".9"/>
+              <rect x="62" y="134" width="76" height="8" rx="4" fill="#0a0a14"/>
+              <rect x="62" y="134" width="52" height="8" rx="4" fill="#503cff" opacity=".8"/>
+              <!-- ARMS -->
+              <rect x="6" y="92" width="28" height="64" rx="7" fill="#222234" stroke="#333"/>
+              <rect x="166" y="92" width="28" height="64" rx="7" fill="#222234" stroke="#333"/>
+              <!-- HANDS -->
+              <rect x="4" y="158" width="32" height="26" rx="6" fill="#2c2c3e" stroke="#333"/>
+              <rect x="164" y="158" width="32" height="26" rx="6" fill="#2c2c3e" stroke="#333"/>
+              <!-- WAIST -->
+              <rect x="54" y="172" width="92" height="14" rx="4" fill="#111118" stroke="#333"/>
+              <!-- LEGS -->
+              <rect x="56" y="186" width="36" height="78" rx="7" fill="#181828" stroke="#333"/>
+              <rect x="108" y="186" width="36" height="78" rx="7" fill="#181828" stroke="#333"/>
+              <!-- FEET -->
+              <rect x="48" y="262" width="52" height="14" rx="4" fill="#222234" stroke="#333"/>
+              <rect x="100" y="262" width="52" height="14" rx="4" fill="#222234" stroke="#333"/>
+              <!-- GLOW -->
+              <ellipse cx="100" cy="278" rx="80" ry="8" fill="rgba(80,60,255,.1)"/>
+              <!-- DIM LINES -->
+              <line x1="4" y1="8" x2="4" y2="276" stroke="#1a1a2a"/>
+              <line x1="0" y1="8" x2="8" y2="8" stroke="#1a1a2a"/>
+              <line x1="0" y1="276" x2="8" y2="276" stroke="#1a1a2a"/>
+            </svg>
+          </div>
+
+          <!-- Side + Rig -->
+          <div class="abox">
+            <div class="abox-lbl">Side View</div>
+            <svg viewBox="0 0 200 340" fill="none" style="display:block;width:100%">
+              <rect x="58" y="8" width="84" height="66" rx="11" fill="#222234" stroke="#503cff" stroke-width="1.5"/>
+              <ellipse cx="130" cy="40" rx="13" ry="13" fill="#0d0d1a"/>
+              <ellipse cx="130" cy="40" rx="9" ry="9" fill="#1ec8ff" opacity=".7"/>
+              <rect x="60" y="20" width="11" height="46" rx="3" fill="#2a2a3a"/>
+              <line x1="100" y1="8" x2="110" y2="-4" stroke="#503cff" stroke-width="2"/>
+              <circle cx="112" cy="-6" r="5" fill="#b8ff00"/>
+              <rect x="88" y="74" width="24" height="14" rx="3" fill="#1c1c2c" stroke="#333"/>
+              <rect x="48" y="88" width="104" height="84" rx="7" fill="#181828" stroke="#503cff" stroke-width="1.5"/>
+              <!-- back thruster -->
+              <rect x="48" y="104" width="14" height="44" rx="3" fill="#101018" stroke="#222232"/>
+              <circle cx="55" cy="126" r="7" fill="rgba(255,42,0,.22)" stroke="#ff2a00"/>
+              <!-- arm side -->
+              <rect x="158" y="92" width="28" height="64" rx="7" fill="#222234" stroke="#333"/>
+              <rect x="156" y="158" width="32" height="26" rx="6" fill="#2c2c3e" stroke="#333"/>
+              <rect x="56" y="172" width="88" height="14" rx="4" fill="#111118" stroke="#333"/>
+              <rect x="66" y="186" width="68" height="78" rx="7" fill="#181828" stroke="#333"/>
+              <!-- foot with heel -->
+              <rect x="50" y="262" width="90" height="14" rx="4" fill="#222234" stroke="#333"/>
+              <rect x="50" y="262" width="22" height="10" rx="3" fill="#1c1c2c"/>
+              <ellipse cx="100" cy="278" rx="80" ry="8" fill="rgba(80,60,255,.1)"/>
+              <text x="20" y="310" fill="#503cff" font-size="9" font-family="monospace">SIDE VIEW</text>
+            </svg>
+          </div>
+
+          <!-- Skeleton rig -->
+          <div class="abox">
+            <div class="abox-lbl">Armature Skeleton</div>
+            <svg viewBox="0 0 200 340" fill="none" style="display:block;width:100%">
+              <!-- SPINE -->
+              <circle cx="100" cy="28" r="6" fill="#b8ff00" stroke="#90cc00"/>
+              <line x1="100" y1="28" x2="100" y2="92" stroke="#b8ff00" stroke-width="2"/>
+              <circle cx="100" cy="92" r="5" fill="#b8ff00"/>
+              <line x1="100" y1="92" x2="100" y2="145" stroke="#b8ff00" stroke-width="2"/>
+              <circle cx="100" cy="145" r="5" fill="#b8ff00"/>
+              <line x1="100" y1="145" x2="100" y2="185" stroke="#b8ff00" stroke-width="2"/>
+              <circle cx="100" cy="185" r="5" fill="#b8ff00"/>
+              <!-- L ARM -->
+              <line x1="100" y1="108" x2="38" y2="112" stroke="#1ec8ff" stroke-width="2"/>
+              <circle cx="38" cy="112" r="4" fill="#1ec8ff"/>
+              <line x1="38" y1="112" x2="14" y2="158" stroke="#1ec8ff" stroke-width="2"/>
+              <circle cx="14" cy="158" r="4" fill="#1ec8ff"/>
+              <line x1="14" y1="158" x2="12" y2="180" stroke="#1ec8ff" stroke-width="2"/>
+              <circle cx="12" cy="180" r="3" fill="#503cff"/>
+              <!-- R ARM -->
+              <line x1="100" y1="108" x2="162" y2="112" stroke="#1ec8ff" stroke-width="2"/>
+              <circle cx="162" cy="112" r="4" fill="#1ec8ff"/>
+              <line x1="162" y1="112" x2="186" y2="158" stroke="#1ec8ff" stroke-width="2"/>
+              <circle cx="186" cy="158" r="4" fill="#1ec8ff"/>
+              <line x1="186" y1="158" x2="188" y2="180" stroke="#1ec8ff" stroke-width="2"/>
+              <circle cx="188" cy="180" r="3" fill="#503cff"/>
+              <!-- L LEG -->
+              <line x1="100" y1="185" x2="70" y2="192" stroke="#ff2a00" stroke-width="2"/>
+              <circle cx="70" cy="192" r="4" fill="#ff2a00"/>
+              <line x1="70" y1="192" x2="64" y2="248" stroke="#ff2a00" stroke-width="2"/>
+              <circle cx="64" cy="248" r="4" fill="#ff2a00"/>
+              <line x1="64" y1="248" x2="60" y2="285" stroke="#ff2a00" stroke-width="2"/>
+              <circle cx="60" cy="285" r="4" fill="#ff2a00"/>
+              <!-- R LEG -->
+              <line x1="100" y1="185" x2="130" y2="192" stroke="#ff2a00" stroke-width="2"/>
+              <circle cx="130" cy="192" r="4" fill="#ff2a00"/>
+              <line x1="130" y1="192" x2="136" y2="248" stroke="#ff2a00" stroke-width="2"/>
+              <circle cx="136" cy="248" r="4" fill="#ff2a00"/>
+              <line x1="136" y1="248" x2="140" y2="285" stroke="#ff2a00" stroke-width="2"/>
+              <circle cx="140" cy="285" r="4" fill="#ff2a00"/>
+              <!-- IK targets -->
+              <rect x="4" y="174" width="12" height="12" rx="2" fill="none" stroke="#503cff" stroke-dasharray="2"/>
+              <rect x="184" y="174" width="12" height="12" rx="2" fill="none" stroke="#503cff" stroke-dasharray="2"/>
+              <rect x="52" y="279" width="12" height="12" rx="2" fill="none" stroke="#503cff" stroke-dasharray="2"/>
+              <rect x="132" y="279" width="12" height="12" rx="2" fill="none" stroke="#503cff" stroke-dasharray="2"/>
+              <!-- LEGEND -->
+              <circle cx="10" cy="320" r="4" fill="#b8ff00"/><text x="18" y="324" fill="#555" font-size="8" font-family="monospace">SPINE</text>
+              <circle cx="60" cy="320" r="4" fill="#1ec8ff"/><text x="68" y="324" fill="#555" font-size="8" font-family="monospace">ARMS</text>
+              <circle cx="110" cy="320" r="4" fill="#ff2a00"/><text x="118" y="324" fill="#555" font-size="8" font-family="monospace">LEGS</text>
+              <rect x="158" y="316" width="8" height="8" rx="1" fill="none" stroke="#503cff"/><text x="170" y="324" fill="#555" font-size="8" font-family="monospace">IK</text>
+            </svg>
+          </div>
+
+          <!-- POSE SHEET full width -->
+          <div class="abox full-w">
+            <div class="abox-lbl">Expression & Pose Sheet — 6 Key Poses</div>
+            <div class="pose-grid">
+              ${[
+                {name:'IDLE',ec:'#1ec8ff',bc:'#503cff',arm:'normal'},
+                {name:'WAVE',ec:'#1ec8ff',bc:'#b8ff00',arm:'wave'},
+                {name:'THINKING',ec:'#1ec8ff',bc:'#503cff',arm:'think'},
+                {name:'RUN CYCLE',ec:'#ff2a00',bc:'#ff2a00',arm:'run'},
+                {name:'SITTING',ec:'#1ec8ff',bc:'#503cff',arm:'sit'},
+                {name:'HAPPY',ec:'#b8ff00',bc:'#b8ff00',arm:'happy'},
+              ].map(p=>`
+              <div class="pose-card">
+                <svg viewBox="0 0 80 120" fill="none" style="width:100%;background:#0a0a14;border-radius:3px;display:block">
+                  <rect x="24" y="6" width="32" height="22" rx="6" fill="#222234" stroke="${p.bc}" stroke-width="${p.name==='HAPPY'?2:1.5}"/>
+                  <ellipse cx="33" cy="16" rx="5" ry="5" fill="${p.ec}" opacity=".9"/>
+                  <ellipse cx="47" cy="16" rx="5" ry="5" fill="${p.ec}" opacity=".9"/>
+                  ${p.name==='HAPPY'?'<path d="M30 22 Q40 28 50 22" stroke="#b8ff00" stroke-width="1.2" fill="none"/>':''}
+                  <line x1="40" y1="6" x2="40" y2="0" stroke="#503cff" stroke-width="1.5"/>
+                  <circle cx="40" cy="-2" r="4" fill="#b8ff00"/>
+                  <rect x="20" y="28" width="40" height="26" rx="4" fill="#181828" stroke="#333"/>
+                  ${p.name==='WAVE'?'<rect x="62" y="20" width="10" height="22" rx="4" fill="#222234" stroke="#b8ff00" transform="rotate(30,67,31)"/><rect x="5" y="30" width="10" height="22" rx="4" fill="#222234" stroke="#333"/>':''}
+                  ${p.name==='THINK'||p.name==='THINKING'?'<rect x="62" y="18" width="10" height="22" rx="4" fill="#222234" stroke="#503cff" transform="rotate(-40,67,29)"/><circle cx="72" cy="8" r="2" fill="#b8ff00"/><circle cx="76" cy="3" r="1.5" fill="#b8ff00" opacity=".5"/><rect x="5" y="30" width="10" height="22" rx="4" fill="#222234" stroke="#333"/>':''}
+                  ${p.name==='HAPPY'?'<rect x="4" y="26" width="10" height="22" rx="4" fill="#222234" stroke="#b8ff00" transform="rotate(28,9,37)"/><rect x="66" y="26" width="10" height="22" rx="4" fill="#222234" stroke="#b8ff00" transform="rotate(-28,71,37)"/>':''}
+                  ${p.name==='RUN CYCLE'?'<rect x="2" y="18" width="10" height="22" rx="4" fill="#222234" stroke="#ff2a00" transform="rotate(-52,7,29)"/><rect x="62" y="36" width="10" height="22" rx="4" fill="#222234" stroke="#ff2a00" transform="rotate(44,67,47)"/>':''}
+                  ${p.name==='IDLE'||p.name==='SITTING'?'<rect x="5" y="30" width="10" height="22" rx="4" fill="#222234" stroke="#333"/><rect x="65" y="30" width="10" height="22" rx="4" fill="#222234" stroke="#333"/>':''}
+                  ${p.name==='SITTING'?
+                    '<rect x="22" y="54" width="14" height="18" rx="4" fill="#181828" stroke="#333"/><rect x="44" y="54" width="14" height="18" rx="4" fill="#181828" stroke="#333"/><rect x="12" y="72" width="22" height="12" rx="4" fill="#181828" stroke="#333" transform="rotate(88,23,78)"/><rect x="46" y="72" width="22" height="12" rx="4" fill="#181828" stroke="#333" transform="rotate(88,57,78)"/><rect x="0" y="73" width="80" height="4" rx="2" fill="#1a1a28"/>':
+                    '<rect x="22" y="54" width="14" height="30" rx="4" fill="#181828" stroke="#333"/><rect x="44" y="54" width="14" height="30" rx="4" fill="#181828" stroke="#333"/><rect x="18" y="82" width="22" height="9" rx="3" fill="#222234"/><rect x="40" y="82" width="22" height="9" rx="3" fill="#222234"/>'}
+                </svg>
+                <p>${p.name}</p>
+              </div>`).join('')}
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div><!-- /r3 -->
+
+  <!-- ── ROW 4 ── -->
+  <div class="proj-row" id="r4">
+    <div class="proj-bar-head" onclick="toggleRow('r4')">
+      <span class="proj-idx">004</span>
+      <div class="proj-name-wrap">
+        <div class="title">Premium Headphone Ad</div>
+        <div class="sub">Product Visualization · Studio Lighting · Commercial Render</div>
+      </div>
+      <div class="proj-pills-inline">
+        <span class="chip">Product Viz</span><span class="chip">DOF</span><span class="chip">4K</span>
+      </div>
+      <div class="proj-arrow">+</div>
+    </div>
+    <div class="asset-panel">
+      <div class="panel-inner">
+        <div class="panel-grid-2">
+
+          <div class="abox">
+            <div class="abox-lbl">Hero Ad Composition</div>
+            <svg viewBox="0 0 500 320" fill="none" style="width:100%;display:block;background:#05050e">
+              <defs>
+                <radialGradient id="hpBg" cx="58%" cy="38%" r="55%">
+                  <stop offset="0%" stop-color="rgba(80,60,255,.14)"/>
+                  <stop offset="100%" stop-color="transparent"/>
+                </radialGradient>
+                <radialGradient id="hpGlow" cx="50%" cy="90%" r="50%">
+                  <stop offset="0%" stop-color="rgba(80,60,255,.18)"/>
+                  <stop offset="100%" stop-color="transparent"/>
+                </radialGradient>
+              </defs>
+              <rect width="500" height="320" fill="#05050e"/>
+              <rect width="500" height="320" fill="url(#hpBg)"/>
+              <!-- headband -->
+              <path d="M122 222 Q122 78 250 78 Q378 78 378 222" stroke="#b8ff00" stroke-width="6" fill="none" stroke-linecap="round"/>
+              <path d="M136 218 Q136 98 250 98 Q364 98 364 218" stroke="#3a3a52" stroke-width="9" fill="none" stroke-linecap="round"/>
+              <!-- left ear cup -->
+              <ellipse cx="122" cy="232" rx="40" ry="48" fill="#141428" stroke="#503cff" stroke-width="2"/>
+              <ellipse cx="122" cy="232" rx="29" ry="36" fill="#0a0a1c" stroke="#2a2a3a"/>
+              <ellipse cx="122" cy="232" rx="16" ry="21" fill="#060614" stroke="#503cff"/>
+              <circle cx="122" cy="232" r="5" fill="#503cff" opacity=".75"/>
+              <!-- right ear cup -->
+              <ellipse cx="378" cy="232" rx="40" ry="48" fill="#141428" stroke="#503cff" stroke-width="2"/>
+              <ellipse cx="378" cy="232" rx="29" ry="36" fill="#0a0a1c" stroke="#2a2a3a"/>
+              <ellipse cx="378" cy="232" rx="16" ry="21" fill="#060614" stroke="#503cff"/>
+              <circle cx="378" cy="232" r="5" fill="#503cff" opacity=".75"/>
+              <!-- rim light right -->
+              <ellipse cx="378" cy="196" rx="22" ry="66" fill="rgba(184,255,0,.04)"/>
+              <!-- ground glow -->
+              <rect width="500" height="320" fill="url(#hpGlow)"/>
+              <!-- brand copy -->
+              <text x="26" y="44" fill="#efefeb" font-family="Anton,sans-serif" font-size="28" letter-spacing="3">APEX WIRELESS PRO</text>
+              <text x="26" y="62" fill="#503cff" font-family="monospace" font-size="10" letter-spacing="3">BY AUSTINE OSUMBA · 3D VISUALISATION</text>
+              <line x1="26" y1="70" x2="130" y2="70" stroke="#503cff" stroke-width="1"/>
+              <text x="290" y="305" fill="#2a2a48" font-family="monospace" font-size="9" letter-spacing="2">40H BATTERY · ANC · LOSSLESS WIRELESS</text>
+              <!-- golden ratio guide faint -->
+              <line x1="308" y1="0" x2="308" y2="320" stroke="rgba(184,255,0,.04)" stroke-dasharray="4"/>
+            </svg>
+          </div>
+
+          <div class="abox">
+            <div class="abox-lbl">4-Point Studio Light Rig (Top View)</div>
+            <svg viewBox="0 0 500 340" fill="none" style="width:100%;display:block">
+              <text x="10" y="18" fill="#333" font-size="9" font-family="monospace" letter-spacing="2">TOP-DOWN LAYOUT</text>
+              <!-- product -->
+              <ellipse cx="250" cy="170" rx="52" ry="32" fill="#181828" stroke="#333"/>
+              <text x="220" y="175" fill="#333" font-size="10" font-family="monospace">PRODUCT</text>
+              <!-- KEY -->
+              <rect x="50" y="36" width="64" height="32" rx="2" fill="rgba(255,220,60,.07)" stroke="#ffdc3c"/>
+              <text x="34" y="28" fill="#ffdc3c" font-size="9" font-family="monospace">KEY LIGHT · 600W</text>
+              <line x1="114" y1="52" x2="202" y2="152" stroke="#ffdc3c" stroke-dasharray="5" stroke-width="1.2"/>
+              <!-- FILL -->
+              <rect x="388" y="148" width="46" height="28" rx="2" fill="rgba(120,180,255,.07)" stroke="#78b4ff"/>
+              <text x="378" y="142" fill="#78b4ff" font-size="9" font-family="monospace">FILL · 150W</text>
+              <line x1="388" y1="162" x2="302" y2="168" stroke="#78b4ff" stroke-dasharray="5" stroke-width="1.2"/>
+              <!-- RIM -->
+              <rect x="356" y="36" width="44" height="28" rx="2" fill="rgba(255,140,50,.07)" stroke="#ff8c32"/>
+              <text x="350" y="28" fill="#ff8c32" font-size="9" font-family="monospace">RIM · 400W</text>
+              <line x1="356" y1="62" x2="294" y2="148" stroke="#ff8c32" stroke-dasharray="5" stroke-width="1.2"/>
+              <!-- BOUNCE -->
+              <rect x="200" y="278" width="100" height="22" rx="2" fill="rgba(255,255,255,.04)" stroke="#444"/>
+              <text x="194" y="274" fill="#444" font-size="9" font-family="monospace">BOUNCE REFLECTOR</text>
+              <line x1="250" y1="278" x2="250" y2="202" stroke="#444" stroke-dasharray="5" stroke-width="1.2"/>
+              <!-- CAMERA -->
+              <circle cx="250" cy="320" r="8" fill="none" stroke="#b8ff00" stroke-width="1.5"/>
+              <text x="228" y="315" fill="#b8ff00" font-size="9" font-family="monospace">CAMERA</text>
+              <line x1="250" y1="312" x2="250" y2="202" stroke="#b8ff00" stroke-dasharray="2" stroke-width="1"/>
+              <ellipse cx="250" cy="174" rx="32" ry="16" fill="rgba(0,0,0,.45)"/>
+            </svg>
+            <table class="spec-table">
+              <tr><td>Key Light</td><td>Area, 600W, 45° upper-left, warm white</td></tr>
+              <tr><td>Fill Light</td><td>Area, 150W, right 0°, cool white</td></tr>
+              <tr><td>Rim Light</td><td>Spot, 400W, 45° upper-right, tinted</td></tr>
+              <tr><td>Bounce</td><td>Emission plane below, soft under-fill</td></tr>
+              <tr><td>DOF</td><td>f/2.8, focal point: near ear cup</td></tr>
+              <tr><td>Render</td><td>Cycles, 512 samples, 4K output</td></tr>
+            </table>
+          </div>
+
+          <!-- Component breakdown -->
+          <div class="abox full-w">
+            <div class="abox-lbl">Component Breakdown</div>
+            <svg viewBox="0 0 700 150" fill="none" style="width:100%;display:block">
+              ${[
+                {x:70,label:'HEADBAND ARC',note1:'Bezier+Sweep mod',note2:'Metal M:1 R:0.15'},
+                {x:210,label:'EAR CUP SHELL',note1:'3 nested ellipses',note2:'Layered materials'},
+                {x:350,label:'CUSHION PAD',note1:'Soft body sim bake',note2:'Leather SSS shader'},
+                {x:490,label:'DRIVER GRILLE',note1:'Array + curve mod',note2:'Micro mesh pattern'},
+                {x:630,label:'CABLE & JACK',note1:'Screw modifier',note2:'Rubber R:0.8'},
+              ].map((c,i)=>`
+                <circle cx="${c.x}" cy="62" r="40" fill="#0e0e1c" stroke="#1a1a2c"/>
+                <text text-anchor="middle" fill="#b8ff00" font-size="8" font-family="monospace">
+                  ${c.label.split(' ').map((w,j)=>`<tspan x="${c.x}" dy="${j===0?56:10}">${w}</tspan>`).join('')}
+                </text>
+                <line x1="${c.x}" y1="102" x2="${c.x}" y2="116" stroke="#1a1a2c"/>
+                <text x="${c.x}" y="126" text-anchor="middle" fill="#444" font-size="8" font-family="monospace">${c.note1}</text>
+                <text x="${c.x}" y="138" text-anchor="middle" fill="#333" font-size="8" font-family="monospace">${c.note2}</text>
+                ${i<4?`<line x1="${c.x+40}" y1="62" x2="${c.x+110}" y2="62" stroke="#1a1a2c" stroke-dasharray="3"/>`:''}
+              `).join('')}
+            </svg>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div><!-- /r4 -->
+
+  <!-- ── ROW 5 — LIVE PARTICLE ART ── -->
+  <div class="proj-row" id="r5">
+    <div class="proj-bar-head" onclick="toggleRow('r5')">
+      <span class="proj-idx">005</span>
+      <div class="proj-name-wrap">
+        <div class="title">Abstract Fluid & Particle Art</div>
+        <div class="sub">Fluid Simulation · Particle Systems · Geometry Nodes · LIVE Interactive</div>
+      </div>
+      <div class="proj-pills-inline">
+        <span class="chip">Simulation</span><span class="chip">Particles</span><span class="chip">⚡ Live</span>
+      </div>
+      <div class="proj-arrow">+</div>
+    </div>
+    <div class="asset-panel">
+      <div class="p5-toolbar">
+        <button class="p5-btn on" onclick="setMode(this,'flow')">Flow Field</button>
+        <button class="p5-btn" onclick="setMode(this,'fluid')">Fluid</button>
+        <button class="p5-btn" onclick="setMode(this,'nebula')">Nebula</button>
+        <button class="p5-btn" onclick="setMode(this,'crystal')">Crystal</button>
+        <button class="p5-btn" onclick="setMode(this,'vortex')">Vortex</button>
+        <span class="p5-hint">Click canvas to regenerate · Screenshot any frame for Blender reference</span>
+      </div>
+      <canvas id="pCanvas"></canvas>
+      <div style="padding:14px 20px;background:rgba(6,6,10,.8);border-top:1px solid var(--border);font-family:var(--fn-mono);font-size:10px;color:var(--mid);display:flex;gap:28px;flex-wrap:wrap">
+        <span>Mode: <span id="modeLabel" style="color:var(--paper)">Flow Field</span></span>
+        <span>Particles: <span style="color:var(--paper)">600+</span></span>
+        <span>Use: <span style="color:var(--paper)">Screenshot → Blender texture reference</span></span>
+        <span>Blender: <span style="color:var(--paper)">Geometry Nodes · Particle System · Fluid Sim</span></span>
+      </div>
+    </div>
+  </div><!-- /r5 -->
+
+  <!-- ── ROW 6 — LIVE LOGO ── -->
+  <div class="proj-row" id="r6">
+    <div class="proj-bar-head" onclick="toggleRow('r6')">
+      <span class="proj-idx">006</span>
+      <div class="proj-name-wrap">
+        <div class="title">Animated Logo Sting</div>
+        <div class="sub">Motion Graphics · 3D Typography · Brand Identity · 3 Variants · LIVE</div>
+      </div>
+      <div class="proj-pills-inline">
+        <span class="chip">Motion GFX</span><span class="chip">Branding</span><span class="chip">⚡ Live</span>
+      </div>
+      <div class="proj-arrow">+</div>
+    </div>
+    <div class="asset-panel">
+      <div class="logo-toolbar">
+        <button class="lv-btn on" onclick="setVariant(this,'dark')">Dark</button>
+        <button class="lv-btn" onclick="setVariant(this,'light')">Light</button>
+        <button class="lv-btn" onclick="setVariant(this,'color')">Color</button>
+        <button class="replay-btn" onclick="replayLogo()">↺ Replay Animation</button>
+      </div>
+      <div class="logo-stage" id="logoStage">
+        <div class="lg-grid-bg"></div>
+        <div class="lg-r"></div><div class="lg-r"></div><div class="lg-r"></div><div class="lg-r"></div>
+        <div class="lg-corners"><span></span><span></span><span></span><span></span></div>
+        <div class="lg-dust" id="lgDust"></div>
+        <div class="lg-core" id="lgCore">
+          <div class="lg-icon">
+            <svg viewBox="0 0 64 64" fill="none">
+              <polygon points="32,3 61,19 61,45 32,61 3,45 3,19" stroke="#b8ff00" stroke-width="1.5" fill="none" opacity=".65">
+                <animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="11s" repeatCount="indefinite"/>
+              </polygon>
+              <polygon points="32,11 54,23 54,41 32,53 10,41 10,23" stroke="#b8ff00" stroke-width="1" fill="rgba(184,255,0,.04)" opacity=".8">
+                <animateTransform attributeName="transform" type="rotate" from="360 32 32" to="0 32 32" dur="7s" repeatCount="indefinite"/>
+              </polygon>
+              <circle cx="32" cy="32" r="7" fill="#b8ff00" opacity=".95"/>
+              <circle cx="32" cy="32" r="3.5" fill="#040408"/>
+            </svg>
+          </div>
+          <div class="lg-wordmark">A.<em>OSUMBA</em></div>
+          <div class="lg-accent-line" id="lgLine"></div>
+          <div class="lg-subtitle">3D Artist · Animator · Blender</div>
+        </div>
+      </div>
+      <div style="padding:14px 20px;background:rgba(6,6,10,.8);border-top:1px solid var(--border);font-family:var(--fn-mono);font-size:10px;color:var(--mid);display:flex;gap:24px;flex-wrap:wrap">
+        <span>Font: <span style="color:var(--paper)">Anton Display</span></span>
+        <span>Icon: <span style="color:var(--paper)">Dual-rotating hexagon geometry</span></span>
+        <span>Reveal: <span style="color:var(--paper)">CSS cubic-bezier + SVG animateTransform</span></span>
+        <span>Deliverable: <span style="color:var(--lime)">Export as WebM / MP4 via OBS screen capture</span></span>
+      </div>
+    </div>
+  </div><!-- /r6 -->
+
+</div><!-- /projList -->
+
+<!-- ═══════════════════════════════════════════ SKILLS -->
+<div class="sec-head" id="skills" style="margin-top:60px">
+  <span class="sec-num">02</span>
+  <span class="sec-title">Skills & Software</span>
+  <div class="sec-line"></div>
+</div>
+<div class="skills-grid">
+  <div class="sk-col">
+    <h4>Modeling & Materials</h4>
+    <div class="sk-item">Hard Surface Modeling <div class="sk-track"><div class="sk-fill" style="width:90%"></div></div></div>
+    <div class="sk-item">UV Unwrapping <div class="sk-track"><div class="sk-fill" style="width:80%"></div></div></div>
+    <div class="sk-item">PBR / Principled BSDF <div class="sk-track"><div class="sk-fill" style="width:86%"></div></div></div>
+    <div class="sk-item">Shader Node Editor <div class="sk-track"><div class="sk-fill" style="width:78%"></div></div></div>
+    <div class="sk-item">Sculpting <div class="sk-track"><div class="sk-fill" style="width:62%"></div></div></div>
+  </div>
+  <div class="sk-col">
+    <h4>Lighting & Rendering</h4>
+    <div class="sk-item">Cycles Rendering <div class="sk-track"><div class="sk-fill" style="width:88%"></div></div></div>
+    <div class="sk-item">EEVEE Real-time <div class="sk-track"><div class="sk-fill" style="width:82%"></div></div></div>
+    <div class="sk-item">HDRI & Studio Lighting <div class="sk-track"><div class="sk-fill" style="width:84%"></div></div></div>
+    <div class="sk-item">Volumetric Lighting <div class="sk-track"><div class="sk-fill" style="width:76%"></div></div></div>
+    <div class="sk-item">Compositor Nodes <div class="sk-track"><div class="sk-fill" style="width:70%"></div></div></div>
+  </div>
+  <div class="sk-col">
+    <h4>Animation & FX</h4>
+    <div class="sk-item">Character Rigging <div class="sk-track"><div class="sk-fill" style="width:74%"></div></div></div>
+    <div class="sk-item">Geometry Nodes <div class="sk-track"><div class="sk-fill" style="width:80%"></div></div></div>
+    <div class="sk-item">Particle Systems <div class="sk-track"><div class="sk-fill" style="width:82%"></div></div></div>
+    <div class="sk-item">Fluid Simulation <div class="sk-track"><div class="sk-fill" style="width:68%"></div></div></div>
+    <div class="sk-item">Motion Graphics <div class="sk-track"><div class="sk-fill" style="width:76%"></div></div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ ROADMAP -->
+<div class="sec-head" id="roadmap">
+  <span class="sec-num">03</span>
+  <span class="sec-title">14-Week Build Roadmap</span>
+  <div class="sec-line"></div>
+</div>
+<div class="roadmap-grid">
+  <div class="rm-phase"><div class="rm-big">01</div><h4>Foundation</h4><div class="weeks">Weeks 1–3</div><ul>
+    <li>Install Blender 4.x + setup</li><li>Blender Guru donut tutorial</li><li>Learn interface & modelling</li>
+    <li>Build Project 001</li><li>Set up ArtStation profile</li>
+  </ul></div>
+  <div class="rm-phase"><div class="rm-big">02</div><h4>Intermediate</h4><div class="weeks">Weeks 4–7</div><ul>
+    <li>Build Projects 002 & 003</li><li>Learn rigging & animation</li><li>Study lighting & composition</li>
+    <li>Publish first 2 to ArtStation</li><li>Create Behance profile</li>
+  </ul></div>
+  <div class="rm-phase"><div class="rm-big">03</div><h4>Advanced</h4><div class="weeks">Weeks 8–11</div><ul>
+    <li>Build Projects 004 & 005</li><li>Learn Geometry Nodes deeply</li><li>Study fluid simulations</li>
+    <li>Publish to both platforms</li><li>Collect community feedback</li>
+  </ul></div>
+  <div class="rm-phase"><div class="rm-big">04</div><h4>Launch</h4><div class="weeks">Weeks 12–14</div><ul>
+    <li>Build Project 006 Logo Sting</li><li>Polish all 6 projects</li><li>Write strong descriptions</li>
+    <li>Full portfolio live both platforms</li><li>Begin applying to 3D roles</li>
+  </ul></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ ABOUT / CONTACT -->
+<div class="sec-head" id="about">
+  <span class="sec-num">04</span>
+  <span class="sec-title">About & Contact</span>
+  <div class="sec-line"></div>
+</div>
+<div class="bottom-grid">
+  <div class="b-box">
+    <h2>AUSTINE<br/><em>OSUMBA</em></h2>
+    <p>Blender-focused 3D artist and animator with a passion for creating compelling digital assets across multiple disciplines — environments, characters, product visualisation, simulations and motion graphics.</p>
+    <p>Work combines technical precision with artistic vision to deliver production-ready 3D content. Targeting roles in games, film, advertising and AI research visual pipelines.</p>
+    <p>Building this portfolio to demonstrate the full breadth of skills available in the Blender ecosystem and beyond.</p>
+  </div>
+  <div class="b-box">
+    <h2>GET IN<br/><em>TOUCH</em></h2>
+    <div class="c-row"><span class="c-label">Name</span><span class="c-val">Austine Osumba</span></div>
+    <div class="c-row"><span class="c-label">Platform</span><span class="c-val">ArtStation</span></div>
+    <div class="c-row"><span class="c-label">Platform</span><span class="c-val">Behance</span></div>
+    <div class="c-row"><span class="c-label">Network</span><span class="c-val">LinkedIn</span></div>
+    <div class="c-row"><span class="c-label">Software</span><span class="c-val">Blender 4.x · Cycles · EEVEE</span></div>
+    <div class="c-row"><span class="c-label">Status</span><span class="c-val open">Open to work ✦</span></div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <p>© 2026 Austine Osumba · 3D Artist & Animator · All projects built in Blender 4.x</p>
+  <div class="f-logo">A.OSUMBA</div>
+</footer>
+
+
+<!-- ═══════════════════════════════════════════ SCRIPTS -->
+<script>
+/* ── CURSOR ── */
+const dot=document.getElementById('dot'),ring=document.getElementById('ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;dot.style.left=mx+'px';dot.style.top=my+'px'});
+(function ar(){rx+=(mx-rx)*.13;ry+=(my-ry)*.13;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(ar)})();
+
+/* ── NAV STUCK ── */
+window.addEventListener('scroll',()=>document.getElementById('nav').classList.toggle('stuck',scrollY>60));
+
+/* ── HERO CANVAS ── */
+(()=>{
+  const c=document.getElementById('hBg'),ctx=c.getContext('2d');
+  let W,H,pts=[];
+  const resize=()=>{W=c.width=c.offsetWidth;H=c.height=c.offsetHeight};
+  const init=()=>{pts=[];for(let i=0;i<90;i++)pts.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,r:.5+Math.random()*1.5,o:.08+Math.random()*.28})};
+  const draw=()=>{
+    ctx.clearRect(0,0,W,H);
+    pts.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(184,255,0,${p.o})`;ctx.fill();
+    });
+    for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){
+      const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);
+      if(d<110){ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.strokeStyle=`rgba(184,255,0,${.055*(1-d/110)})`;ctx.stroke()}
+    }
+    requestAnimationFrame(draw);
+  };
+  resize();init();draw();
+  window.addEventListener('resize',()=>{resize();init()});
+})();
+
+/* ── ACCORDION ── */
+function toggleRow(id){
+  const row=document.getElementById(id);
+  const wasOpen=row.classList.contains('open');
+  // close all
+  document.querySelectorAll('.proj-row.open').forEach(r=>r.classList.remove('open'));
+  if(!wasOpen){
+    row.classList.add('open');
+    setTimeout(()=>row.scrollIntoView({behavior:'smooth',block:'nearest'}),60);
+    if(id==='r5') initParticles();
+    if(id==='r6') initLogo();
+  }
+}
+
+/* ══════════════════════════════
+   PARTICLE SYSTEM (Project 005)
+══════════════════════════════ */
+let pMode='flow',pT=0,pPts=[],pAnim=null;
+const PAL={
+  flow:['#b8ff00','#503cff','#ff2a00','#1ec8ff'],
+  fluid:['#1ec8ff','#0066ff','#503cff','#ff006e'],
+  nebula:['#ff006e','#503cff','#b8ff00','#ff2a00'],
+  crystal:['#a8ffe8','#b8ff00','#ffffff','#503cff'],
+  vortex:['#ff2a00','#ff006e','#b8ff00','#503cff']
+};
+const MLABELS={flow:'Flow Field',fluid:'Fluid Splash',nebula:'Nebula Cloud',crystal:'Crystal Form',vortex:'Vortex System'};
+
+function noise(x,y,t){return Math.sin(x*.009+t*.28)*Math.cos(y*.009+t*.18)+Math.sin(x*.016+y*.011+t*.46)*.5}
+
+function initParticles(){
+  const c=document.getElementById('pCanvas');if(!c)return;
+  const ctx=c.getContext('2d');
+  c.width=c.offsetWidth||900;c.height=460;
+  const W=c.width,H=c.height;
+  pPts=[];pT=0;
+  const N=pMode==='nebula'?720:pMode==='vortex'?880:580;
+  for(let i=0;i<N;i++)pPts.push({
+    x:Math.random()*W,y:Math.random()*H,vx:0,vy:0,
+    col:PAL[pMode][i%4],life:Math.random(),
+    sz:.8+Math.random()*2.2,trail:[]
+  });
+  if(pAnim)cancelAnimationFrame(pAnim);
+  const frame=()=>{
+    ctx.fillStyle='rgba(6,6,10,.27)';ctx.fillRect(0,0,W,H);
+    pPts.forEach(p=>{
+      if(pMode==='flow'){const a=noise(p.x,p.y,pT)*Math.PI*3;p.vx+=Math.cos(a)*.38;p.vy+=Math.sin(a)*.38;p.vx*=.94;p.vy*=.94}
+      else if(pMode==='fluid'){const dx=p.x-W/2,dy=p.y-H/2,d=Math.sqrt(dx*dx+dy*dy)+1,w=Math.sin(d*.02-pT*2);p.vx+=(-dy/d*w*2+Math.cos(pT+p.x*.01)*.5);p.vy+=(dx/d*w*2+Math.sin(pT+p.y*.01)*.5);p.vx*=.92;p.vy*=.92}
+      else if(pMode==='nebula'){p.vx+=(Math.random()-.5)*.9;p.vy+=(Math.random()-.5)*.9-.12;p.vx*=.97;p.vy*=.97}
+      else if(pMode==='crystal'){const a=Math.floor(noise(p.x,p.y,pT*.3)*6)*Math.PI/3;p.vx+=Math.cos(a)*.6;p.vy+=Math.sin(a)*.6;p.vx*=.9;p.vy*=.9}
+      else if(pMode==='vortex'){const dx=p.x-W/2,dy=p.y-H/2,d=Math.sqrt(dx*dx+dy*dy)+1;p.vx+=(-dy/d*3-dx/d*.5);p.vy+=(dx/d*3-dy/d*.5);p.vx*=.92;p.vy*=.92}
+      p.trail.push({x:p.x,y:p.y});if(p.trail.length>14)p.trail.shift();
+      p.x+=p.vx;p.y+=p.vy;p.life-=.004;
+      if(p.life<=0||p.x<-50||p.x>W+50||p.y<-50||p.y>H+50){
+        p.x=Math.random()*W;p.y=Math.random()*H;p.vx=0;p.vy=0;p.life=.5+Math.random()*.5;p.trail=[];
+        p.col=PAL[pMode][Math.floor(Math.random()*4)];
+      }
+      if(p.trail.length>1){
+        ctx.beginPath();ctx.moveTo(p.trail[0].x,p.trail[0].y);
+        p.trail.forEach(t=>ctx.lineTo(t.x,t.y));ctx.lineTo(p.x,p.y);
+        ctx.strokeStyle=p.col;ctx.globalAlpha=p.life*.54;
+        ctx.lineWidth=p.sz*(pMode==='nebula'?1.9:1);ctx.stroke();
+      }
+      ctx.beginPath();ctx.arc(p.x,p.y,p.sz*1.4,0,Math.PI*2);
+      ctx.fillStyle=p.col;ctx.globalAlpha=p.life*.75;ctx.fill();
+      ctx.globalAlpha=1;
+    });
+    pT+=.008;pAnim=requestAnimationFrame(frame);
+  };
+  frame();
+  c.onclick=()=>{pPts.forEach(p=>{p.x=Math.random()*c.width;p.y=Math.random()*c.height;p.vx=0;p.vy=0;p.life=Math.random();p.trail=[]})};
+}
+
+function setMode(btn,m){
+  pMode=m;
+  document.querySelectorAll('.p5-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('modeLabel').textContent=MLABELS[m];
+  if(pPts.length){
+    const c=document.getElementById('pCanvas');
+    pPts.forEach(p=>{p.col=PAL[m][Math.floor(Math.random()*4)];p.x=Math.random()*c.width;p.y=Math.random()*c.height;p.vx=0;p.vy=0;p.trail=[]});
+  }
+}
+
+/* ══════════════════════════════
+   LOGO STING (Project 006)
+══════════════════════════════ */
+let logoVariant='dark';
+
+function initLogo(){
+  const dust=document.getElementById('lgDust');if(!dust||dust.children.length)return;
+  for(let i=0;i<38;i++){
+    const d=document.createElement('div');d.className='lg-d';
+    d.style.left=Math.random()*100+'%';d.style.bottom=Math.random()*35+'%';
+    d.style.setProperty('--dx',(Math.random()*110-55)+'px');
+    d.style.animationDuration=(3.5+Math.random()*4.5)+'s';
+    d.style.animationDelay=(Math.random()*9)+'s';
+    dust.appendChild(d);
+  }
+}
+
+function setVariant(btn,v){
+  logoVariant=v;
+  const s=document.getElementById('logoStage');
+  s.className='logo-stage';
+  if(v==='light')s.classList.add('lt');
+  if(v==='color')s.classList.add('cl');
+  document.querySelectorAll('.lv-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  replayLogo();
+}
+
+function replayLogo(){
+  const core=document.getElementById('lgCore'),line=document.getElementById('lgLine');if(!core)return;
+  const sub=core.querySelector('.lg-subtitle');
+  core.style.animation='none';line.style.animation='none';sub.style.animation='none';
+  core.style.opacity='0';line.style.width='0';sub.style.opacity='0';
+  setTimeout(()=>{
+    core.style.animation='cIn 1.1s cubic-bezier(.16,1,.3,1) .2s forwards';
+    line.style.animation='lineGrow .8s cubic-bezier(.16,1,.3,1) .9s forwards';
+    sub.style.animation='fadeIn .5s ease 1.5s forwards';
+  },40);
+}
+
+/* ESC to close all rows */
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(pAnim){cancelAnimationFrame(pAnim);pAnim=null}document.querySelectorAll('.proj-row.open').forEach(r=>r.classList.remove('open'))}});
+
+/* Resize canvas if visible */
+window.addEventListener('resize',()=>{
+  const c=document.getElementById('pCanvas');
+  if(c&&c.offsetParent!==null){c.width=c.offsetWidth;initParticles()}
+});
+</script>
+</body>
+</html>
